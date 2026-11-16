@@ -1,0 +1,1345 @@
+{
+  "info": {
+    "name": "Third-Party Vendor Risk Assessor Postman Collection",
+    "description": "Continuous security, privacy, and compliance risk assessment for \nthird-party vendors. Tracks every SaaS tool, cloud provider, and \nintegration partner in your supply chain. Automatically monitors \nsecurity posture via public sources (SOC2 reports, breach databases, \nsecurity ratings), flags compliance gaps, and enforces data processing \nagreement (DPA) renewals. Prevents the classic \"we forgot that vendor \nhad access to customer data\" incident.\n\nOpenAPI version: 3.0.3",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{accessToken}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "https://vendor-risk.forgesphere.lightning.com/v1",
+      "type": "string",
+      "description": "Override with the base URL of the deployed Kong gateway."
+    },
+    {
+      "key": "accessToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "category",
+      "value": "",
+      "type": "string",
+      "description": "Filter by vendor category."
+    },
+    {
+      "key": "criticalityTier",
+      "value": "",
+      "type": "string",
+      "description": "Filter by criticality tier."
+    },
+    {
+      "key": "riskLevel",
+      "value": "",
+      "type": "string",
+      "description": "Filter by current risk level."
+    },
+    {
+      "key": "complianceStatus",
+      "value": "",
+      "type": "string",
+      "description": "Filter by compliance status."
+    },
+    {
+      "key": "dpaExpiringWithinDays",
+      "value": "",
+      "type": "string",
+      "description": "Only vendors whose DPA expires within N days."
+    },
+    {
+      "key": "q",
+      "value": "",
+      "type": "string",
+      "description": "Full-text search on vendor name."
+    },
+    {
+      "key": "sortBy",
+      "value": "",
+      "type": "string",
+      "description": "Sort order."
+    },
+    {
+      "key": "page",
+      "value": "",
+      "type": "string",
+      "description": "Page number (zero-based)."
+    },
+    {
+      "key": "size",
+      "value": "",
+      "type": "string",
+      "description": "Number of items per page."
+    },
+    {
+      "key": "vendorId",
+      "value": "",
+      "type": "string",
+      "description": "Unique identifier of the vendor."
+    },
+    {
+      "key": "includeAssessmentHistory",
+      "value": "",
+      "type": "string",
+      "description": "Include historical assessment records."
+    },
+    {
+      "key": "includeComplianceEvidence",
+      "value": "",
+      "type": "string",
+      "description": "Include links to compliance documents (SOC2, ISO certs)."
+    },
+    {
+      "key": "assessmentId",
+      "value": "",
+      "type": "string",
+      "description": "Unique identifier of the assessment."
+    },
+    {
+      "key": "includeFindings",
+      "value": "",
+      "type": "string",
+      "description": "Include detailed findings from each check."
+    }
+  ],
+  "item": [
+    {
+      "name": "Register a new third-party vendor",
+      "request": {
+        "method": "POST",
+        "description": "Register a new third-party vendor\n\nResponses:\n- 201: Vendor registered and monitoring initiated.\n- 400: Response\n- 409: Vendor with this domain already exists.\n- 500: Response",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/vendors",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "vendors"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"vendorName\": \"Snowflake Inc.\",\n  \"website\": \"https://www.snowflake.com\",\n  \"category\": \"DATA_WAREHOUSE\",\n  \"criticalityTier\": \"TIER_1\",\n  \"dataAccessScope\": {\n    \"dataTypes\": [\n      \"CUSTOMER_PII\",\n      \"FINANCIAL\",\n      \"BEHAVIORAL\"\n    ],\n    \"accessLevel\": \"READ_WRITE\",\n    \"dataVolumePerMonthGb\": 850\n  },\n  \"integrations\": [\n    {\n      \"serviceName\": \"analytics-platform\",\n      \"protocol\": \"OAuth2\",\n      \"deployedIn\": [\n        \"PRODUCTION\"\n      ]\n    }\n  ],\n  \"complianceRequirements\": [\n    \"SOC2_TYPE_II\",\n    \"ISO_27001\",\n    \"GDPR_DPA\"\n  ],\n  \"contractOwner\": \"procurement-team@forgesphere.example.com\",\n  \"technicalOwner\": \"data-platform@forgesphere.example.com\",\n  \"dpa\": {\n    \"signed\": true,\n    \"signedAt\": \"2025-06-15T00:00:00Z\",\n    \"expiresAt\": \"2026-12-31T23:59:59Z\"\n  },\n  \"annualContractValueUSD\": 240000\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "response": [
+        {
+          "name": "201 Vendor registered and monitoring initiated.",
+          "originalRequest": {
+            "method": "POST",
+            "description": "Register a new third-party vendor\n\nResponses:\n- 201: Vendor registered and monitoring initiated.\n- 400: Response\n- 409: Vendor with this domain already exists.\n- 500: Response",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/vendors",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "vendors"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"vendorName\": \"Snowflake Inc.\",\n  \"website\": \"https://www.snowflake.com\",\n  \"category\": \"DATA_WAREHOUSE\",\n  \"criticalityTier\": \"TIER_1\",\n  \"dataAccessScope\": {\n    \"dataTypes\": [\n      \"CUSTOMER_PII\",\n      \"FINANCIAL\",\n      \"BEHAVIORAL\"\n    ],\n    \"accessLevel\": \"READ_WRITE\",\n    \"dataVolumePerMonthGb\": 850\n  },\n  \"integrations\": [\n    {\n      \"serviceName\": \"analytics-platform\",\n      \"protocol\": \"OAuth2\",\n      \"deployedIn\": [\n        \"PRODUCTION\"\n      ]\n    }\n  ],\n  \"complianceRequirements\": [\n    \"SOC2_TYPE_II\",\n    \"ISO_27001\",\n    \"GDPR_DPA\"\n  ],\n  \"contractOwner\": \"procurement-team@forgesphere.example.com\",\n  \"technicalOwner\": \"data-platform@forgesphere.example.com\",\n  \"dpa\": {\n    \"signed\": true,\n    \"signedAt\": \"2025-06-15T00:00:00Z\",\n    \"expiresAt\": \"2026-12-31T23:59:59Z\"\n  },\n  \"annualContractValueUSD\": 240000\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "status": "Vendor registered and monitoring initiated.",
+          "code": 201,
+          "_postman_previewlanguage": "json",
+          "header": [],
+          "body": ""
+        },
+        {
+          "name": "400",
+          "originalRequest": {
+            "method": "POST",
+            "description": "Register a new third-party vendor\n\nResponses:\n- 201: Vendor registered and monitoring initiated.\n- 400: Response\n- 409: Vendor with this domain already exists.\n- 500: Response",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/vendors",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "vendors"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"vendorName\": \"Snowflake Inc.\",\n  \"website\": \"https://www.snowflake.com\",\n  \"category\": \"DATA_WAREHOUSE\",\n  \"criticalityTier\": \"TIER_1\",\n  \"dataAccessScope\": {\n    \"dataTypes\": [\n      \"CUSTOMER_PII\",\n      \"FINANCIAL\",\n      \"BEHAVIORAL\"\n    ],\n    \"accessLevel\": \"READ_WRITE\",\n    \"dataVolumePerMonthGb\": 850\n  },\n  \"integrations\": [\n    {\n      \"serviceName\": \"analytics-platform\",\n      \"protocol\": \"OAuth2\",\n      \"deployedIn\": [\n        \"PRODUCTION\"\n      ]\n    }\n  ],\n  \"complianceRequirements\": [\n    \"SOC2_TYPE_II\",\n    \"ISO_27001\",\n    \"GDPR_DPA\"\n  ],\n  \"contractOwner\": \"procurement-team@forgesphere.example.com\",\n  \"technicalOwner\": \"data-platform@forgesphere.example.com\",\n  \"dpa\": {\n    \"signed\": true,\n    \"signedAt\": \"2025-06-15T00:00:00Z\",\n    \"expiresAt\": \"2026-12-31T23:59:59Z\"\n  },\n  \"annualContractValueUSD\": 240000\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "status": "400",
+          "code": 400,
+          "_postman_previewlanguage": "json",
+          "header": [],
+          "body": ""
+        },
+        {
+          "name": "409 Vendor with this domain already exists.",
+          "originalRequest": {
+            "method": "POST",
+            "description": "Register a new third-party vendor\n\nResponses:\n- 201: Vendor registered and monitoring initiated.\n- 400: Response\n- 409: Vendor with this domain already exists.\n- 500: Response",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/vendors",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "vendors"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"vendorName\": \"Snowflake Inc.\",\n  \"website\": \"https://www.snowflake.com\",\n  \"category\": \"DATA_WAREHOUSE\",\n  \"criticalityTier\": \"TIER_1\",\n  \"dataAccessScope\": {\n    \"dataTypes\": [\n      \"CUSTOMER_PII\",\n      \"FINANCIAL\",\n      \"BEHAVIORAL\"\n    ],\n    \"accessLevel\": \"READ_WRITE\",\n    \"dataVolumePerMonthGb\": 850\n  },\n  \"integrations\": [\n    {\n      \"serviceName\": \"analytics-platform\",\n      \"protocol\": \"OAuth2\",\n      \"deployedIn\": [\n        \"PRODUCTION\"\n      ]\n    }\n  ],\n  \"complianceRequirements\": [\n    \"SOC2_TYPE_II\",\n    \"ISO_27001\",\n    \"GDPR_DPA\"\n  ],\n  \"contractOwner\": \"procurement-team@forgesphere.example.com\",\n  \"technicalOwner\": \"data-platform@forgesphere.example.com\",\n  \"dpa\": {\n    \"signed\": true,\n    \"signedAt\": \"2025-06-15T00:00:00Z\",\n    \"expiresAt\": \"2026-12-31T23:59:59Z\"\n  },\n  \"annualContractValueUSD\": 240000\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "status": "Vendor with this domain already exists.",
+          "code": 409,
+          "_postman_previewlanguage": "json",
+          "header": [],
+          "body": ""
+        },
+        {
+          "name": "500",
+          "originalRequest": {
+            "method": "POST",
+            "description": "Register a new third-party vendor\n\nResponses:\n- 201: Vendor registered and monitoring initiated.\n- 400: Response\n- 409: Vendor with this domain already exists.\n- 500: Response",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/vendors",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "vendors"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"vendorName\": \"Snowflake Inc.\",\n  \"website\": \"https://www.snowflake.com\",\n  \"category\": \"DATA_WAREHOUSE\",\n  \"criticalityTier\": \"TIER_1\",\n  \"dataAccessScope\": {\n    \"dataTypes\": [\n      \"CUSTOMER_PII\",\n      \"FINANCIAL\",\n      \"BEHAVIORAL\"\n    ],\n    \"accessLevel\": \"READ_WRITE\",\n    \"dataVolumePerMonthGb\": 850\n  },\n  \"integrations\": [\n    {\n      \"serviceName\": \"analytics-platform\",\n      \"protocol\": \"OAuth2\",\n      \"deployedIn\": [\n        \"PRODUCTION\"\n      ]\n    }\n  ],\n  \"complianceRequirements\": [\n    \"SOC2_TYPE_II\",\n    \"ISO_27001\",\n    \"GDPR_DPA\"\n  ],\n  \"contractOwner\": \"procurement-team@forgesphere.example.com\",\n  \"technicalOwner\": \"data-platform@forgesphere.example.com\",\n  \"dpa\": {\n    \"signed\": true,\n    \"signedAt\": \"2025-06-15T00:00:00Z\",\n    \"expiresAt\": \"2026-12-31T23:59:59Z\"\n  },\n  \"annualContractValueUSD\": 240000\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "status": "500",
+          "code": 500,
+          "_postman_previewlanguage": "json",
+          "header": [],
+          "body": ""
+        }
+      ]
+    },
+    {
+      "name": "List and search registered vendors",
+      "request": {
+        "method": "GET",
+        "description": "List and search registered vendors\n\nResponses:\n- 200: Paginated list of vendors.\n- 400: Response\n- 401: Response\n- 500: Response",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/vendors?category={{category}}&criticalityTier={{criticalityTier}}&riskLevel={{riskLevel}}&complianceStatus={{complianceStatus}}&dpaExpiringWithinDays={{dpaExpiringWithinDays}}&q={{q}}&sortBy={{sortBy}}&page={{page}}&size={{size}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "vendors"
+          ],
+          "query": [
+            {
+              "key": "category",
+              "value": "{{category}}",
+              "disabled": true,
+              "description": "Filter by vendor category."
+            },
+            {
+              "key": "criticalityTier",
+              "value": "{{criticalityTier}}",
+              "disabled": true,
+              "description": "Filter by criticality tier."
+            },
+            {
+              "key": "riskLevel",
+              "value": "{{riskLevel}}",
+              "disabled": true,
+              "description": "Filter by current risk level."
+            },
+            {
+              "key": "complianceStatus",
+              "value": "{{complianceStatus}}",
+              "disabled": true,
+              "description": "Filter by compliance status."
+            },
+            {
+              "key": "dpaExpiringWithinDays",
+              "value": "{{dpaExpiringWithinDays}}",
+              "disabled": true,
+              "description": "Only vendors whose DPA expires within N days."
+            },
+            {
+              "key": "q",
+              "value": "{{q}}",
+              "disabled": true,
+              "description": "Full-text search on vendor name."
+            },
+            {
+              "key": "sortBy",
+              "value": "{{sortBy}}",
+              "disabled": true,
+              "description": "Sort order."
+            },
+            {
+              "key": "page",
+              "value": "{{page}}",
+              "disabled": true,
+              "description": "Page number (zero-based)."
+            },
+            {
+              "key": "size",
+              "value": "{{size}}",
+              "disabled": true,
+              "description": "Number of items per page."
+            }
+          ]
+        }
+      },
+      "response": [
+        {
+          "name": "200 Paginated list of vendors.",
+          "originalRequest": {
+            "method": "GET",
+            "description": "List and search registered vendors\n\nResponses:\n- 200: Paginated list of vendors.\n- 400: Response\n- 401: Response\n- 500: Response",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/vendors?category={{category}}&criticalityTier={{criticalityTier}}&riskLevel={{riskLevel}}&complianceStatus={{complianceStatus}}&dpaExpiringWithinDays={{dpaExpiringWithinDays}}&q={{q}}&sortBy={{sortBy}}&page={{page}}&size={{size}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "vendors"
+              ],
+              "query": [
+                {
+                  "key": "category",
+                  "value": "{{category}}",
+                  "disabled": true,
+                  "description": "Filter by vendor category."
+                },
+                {
+                  "key": "criticalityTier",
+                  "value": "{{criticalityTier}}",
+                  "disabled": true,
+                  "description": "Filter by criticality tier."
+                },
+                {
+                  "key": "riskLevel",
+                  "value": "{{riskLevel}}",
+                  "disabled": true,
+                  "description": "Filter by current risk level."
+                },
+                {
+                  "key": "complianceStatus",
+                  "value": "{{complianceStatus}}",
+                  "disabled": true,
+                  "description": "Filter by compliance status."
+                },
+                {
+                  "key": "dpaExpiringWithinDays",
+                  "value": "{{dpaExpiringWithinDays}}",
+                  "disabled": true,
+                  "description": "Only vendors whose DPA expires within N days."
+                },
+                {
+                  "key": "q",
+                  "value": "{{q}}",
+                  "disabled": true,
+                  "description": "Full-text search on vendor name."
+                },
+                {
+                  "key": "sortBy",
+                  "value": "{{sortBy}}",
+                  "disabled": true,
+                  "description": "Sort order."
+                },
+                {
+                  "key": "page",
+                  "value": "{{page}}",
+                  "disabled": true,
+                  "description": "Page number (zero-based)."
+                },
+                {
+                  "key": "size",
+                  "value": "{{size}}",
+                  "disabled": true,
+                  "description": "Number of items per page."
+                }
+              ]
+            }
+          },
+          "status": "Paginated list of vendors.",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [],
+          "body": ""
+        },
+        {
+          "name": "400",
+          "originalRequest": {
+            "method": "GET",
+            "description": "List and search registered vendors\n\nResponses:\n- 200: Paginated list of vendors.\n- 400: Response\n- 401: Response\n- 500: Response",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/vendors?category={{category}}&criticalityTier={{criticalityTier}}&riskLevel={{riskLevel}}&complianceStatus={{complianceStatus}}&dpaExpiringWithinDays={{dpaExpiringWithinDays}}&q={{q}}&sortBy={{sortBy}}&page={{page}}&size={{size}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "vendors"
+              ],
+              "query": [
+                {
+                  "key": "category",
+                  "value": "{{category}}",
+                  "disabled": true,
+                  "description": "Filter by vendor category."
+                },
+                {
+                  "key": "criticalityTier",
+                  "value": "{{criticalityTier}}",
+                  "disabled": true,
+                  "description": "Filter by criticality tier."
+                },
+                {
+                  "key": "riskLevel",
+                  "value": "{{riskLevel}}",
+                  "disabled": true,
+                  "description": "Filter by current risk level."
+                },
+                {
+                  "key": "complianceStatus",
+                  "value": "{{complianceStatus}}",
+                  "disabled": true,
+                  "description": "Filter by compliance status."
+                },
+                {
+                  "key": "dpaExpiringWithinDays",
+                  "value": "{{dpaExpiringWithinDays}}",
+                  "disabled": true,
+                  "description": "Only vendors whose DPA expires within N days."
+                },
+                {
+                  "key": "q",
+                  "value": "{{q}}",
+                  "disabled": true,
+                  "description": "Full-text search on vendor name."
+                },
+                {
+                  "key": "sortBy",
+                  "value": "{{sortBy}}",
+                  "disabled": true,
+                  "description": "Sort order."
+                },
+                {
+                  "key": "page",
+                  "value": "{{page}}",
+                  "disabled": true,
+                  "description": "Page number (zero-based)."
+                },
+                {
+                  "key": "size",
+                  "value": "{{size}}",
+                  "disabled": true,
+                  "description": "Number of items per page."
+                }
+              ]
+            }
+          },
+          "status": "400",
+          "code": 400,
+          "_postman_previewlanguage": "json",
+          "header": [],
+          "body": ""
+        },
+        {
+          "name": "401",
+          "originalRequest": {
+            "method": "GET",
+            "description": "List and search registered vendors\n\nResponses:\n- 200: Paginated list of vendors.\n- 400: Response\n- 401: Response\n- 500: Response",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/vendors?category={{category}}&criticalityTier={{criticalityTier}}&riskLevel={{riskLevel}}&complianceStatus={{complianceStatus}}&dpaExpiringWithinDays={{dpaExpiringWithinDays}}&q={{q}}&sortBy={{sortBy}}&page={{page}}&size={{size}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "vendors"
+              ],
+              "query": [
+                {
+                  "key": "category",
+                  "value": "{{category}}",
+                  "disabled": true,
+                  "description": "Filter by vendor category."
+                },
+                {
+                  "key": "criticalityTier",
+                  "value": "{{criticalityTier}}",
+                  "disabled": true,
+                  "description": "Filter by criticality tier."
+                },
+                {
+                  "key": "riskLevel",
+                  "value": "{{riskLevel}}",
+                  "disabled": true,
+                  "description": "Filter by current risk level."
+                },
+                {
+                  "key": "complianceStatus",
+                  "value": "{{complianceStatus}}",
+                  "disabled": true,
+                  "description": "Filter by compliance status."
+                },
+                {
+                  "key": "dpaExpiringWithinDays",
+                  "value": "{{dpaExpiringWithinDays}}",
+                  "disabled": true,
+                  "description": "Only vendors whose DPA expires within N days."
+                },
+                {
+                  "key": "q",
+                  "value": "{{q}}",
+                  "disabled": true,
+                  "description": "Full-text search on vendor name."
+                },
+                {
+                  "key": "sortBy",
+                  "value": "{{sortBy}}",
+                  "disabled": true,
+                  "description": "Sort order."
+                },
+                {
+                  "key": "page",
+                  "value": "{{page}}",
+                  "disabled": true,
+                  "description": "Page number (zero-based)."
+                },
+                {
+                  "key": "size",
+                  "value": "{{size}}",
+                  "disabled": true,
+                  "description": "Number of items per page."
+                }
+              ]
+            }
+          },
+          "status": "401",
+          "code": 401,
+          "_postman_previewlanguage": "json",
+          "header": [],
+          "body": ""
+        },
+        {
+          "name": "500",
+          "originalRequest": {
+            "method": "GET",
+            "description": "List and search registered vendors\n\nResponses:\n- 200: Paginated list of vendors.\n- 400: Response\n- 401: Response\n- 500: Response",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/vendors?category={{category}}&criticalityTier={{criticalityTier}}&riskLevel={{riskLevel}}&complianceStatus={{complianceStatus}}&dpaExpiringWithinDays={{dpaExpiringWithinDays}}&q={{q}}&sortBy={{sortBy}}&page={{page}}&size={{size}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "vendors"
+              ],
+              "query": [
+                {
+                  "key": "category",
+                  "value": "{{category}}",
+                  "disabled": true,
+                  "description": "Filter by vendor category."
+                },
+                {
+                  "key": "criticalityTier",
+                  "value": "{{criticalityTier}}",
+                  "disabled": true,
+                  "description": "Filter by criticality tier."
+                },
+                {
+                  "key": "riskLevel",
+                  "value": "{{riskLevel}}",
+                  "disabled": true,
+                  "description": "Filter by current risk level."
+                },
+                {
+                  "key": "complianceStatus",
+                  "value": "{{complianceStatus}}",
+                  "disabled": true,
+                  "description": "Filter by compliance status."
+                },
+                {
+                  "key": "dpaExpiringWithinDays",
+                  "value": "{{dpaExpiringWithinDays}}",
+                  "disabled": true,
+                  "description": "Only vendors whose DPA expires within N days."
+                },
+                {
+                  "key": "q",
+                  "value": "{{q}}",
+                  "disabled": true,
+                  "description": "Full-text search on vendor name."
+                },
+                {
+                  "key": "sortBy",
+                  "value": "{{sortBy}}",
+                  "disabled": true,
+                  "description": "Sort order."
+                },
+                {
+                  "key": "page",
+                  "value": "{{page}}",
+                  "disabled": true,
+                  "description": "Page number (zero-based)."
+                },
+                {
+                  "key": "size",
+                  "value": "{{size}}",
+                  "disabled": true,
+                  "description": "Number of items per page."
+                }
+              ]
+            }
+          },
+          "status": "500",
+          "code": 500,
+          "_postman_previewlanguage": "json",
+          "header": [],
+          "body": ""
+        }
+      ]
+    },
+    {
+      "name": "Get detailed vendor risk profile",
+      "request": {
+        "method": "GET",
+        "description": "Get detailed vendor risk profile\n\nResponses:\n- 200: Vendor details retrieved successfully.\n- 401: Response\n- 404: Response\n- 500: Response",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/vendors/:vendorId?includeAssessmentHistory={{includeAssessmentHistory}}&includeComplianceEvidence={{includeComplianceEvidence}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "vendors",
+            ":vendorId"
+          ],
+          "query": [
+            {
+              "key": "includeAssessmentHistory",
+              "value": "{{includeAssessmentHistory}}",
+              "disabled": true,
+              "description": "Include historical assessment records."
+            },
+            {
+              "key": "includeComplianceEvidence",
+              "value": "{{includeComplianceEvidence}}",
+              "disabled": true,
+              "description": "Include links to compliance documents (SOC2, ISO certs)."
+            }
+          ],
+          "variable": [
+            {
+              "key": "vendorId",
+              "value": "{{vendorId}}",
+              "description": "Unique identifier of the vendor."
+            }
+          ]
+        }
+      },
+      "response": [
+        {
+          "name": "200 Vendor details retrieved successfully.",
+          "originalRequest": {
+            "method": "GET",
+            "description": "Get detailed vendor risk profile\n\nResponses:\n- 200: Vendor details retrieved successfully.\n- 401: Response\n- 404: Response\n- 500: Response",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/vendors/:vendorId?includeAssessmentHistory={{includeAssessmentHistory}}&includeComplianceEvidence={{includeComplianceEvidence}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "vendors",
+                ":vendorId"
+              ],
+              "query": [
+                {
+                  "key": "includeAssessmentHistory",
+                  "value": "{{includeAssessmentHistory}}",
+                  "disabled": true,
+                  "description": "Include historical assessment records."
+                },
+                {
+                  "key": "includeComplianceEvidence",
+                  "value": "{{includeComplianceEvidence}}",
+                  "disabled": true,
+                  "description": "Include links to compliance documents (SOC2, ISO certs)."
+                }
+              ],
+              "variable": [
+                {
+                  "key": "vendorId",
+                  "value": "{{vendorId}}",
+                  "description": "Unique identifier of the vendor."
+                }
+              ]
+            }
+          },
+          "status": "Vendor details retrieved successfully.",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [],
+          "body": ""
+        },
+        {
+          "name": "401",
+          "originalRequest": {
+            "method": "GET",
+            "description": "Get detailed vendor risk profile\n\nResponses:\n- 200: Vendor details retrieved successfully.\n- 401: Response\n- 404: Response\n- 500: Response",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/vendors/:vendorId?includeAssessmentHistory={{includeAssessmentHistory}}&includeComplianceEvidence={{includeComplianceEvidence}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "vendors",
+                ":vendorId"
+              ],
+              "query": [
+                {
+                  "key": "includeAssessmentHistory",
+                  "value": "{{includeAssessmentHistory}}",
+                  "disabled": true,
+                  "description": "Include historical assessment records."
+                },
+                {
+                  "key": "includeComplianceEvidence",
+                  "value": "{{includeComplianceEvidence}}",
+                  "disabled": true,
+                  "description": "Include links to compliance documents (SOC2, ISO certs)."
+                }
+              ],
+              "variable": [
+                {
+                  "key": "vendorId",
+                  "value": "{{vendorId}}",
+                  "description": "Unique identifier of the vendor."
+                }
+              ]
+            }
+          },
+          "status": "401",
+          "code": 401,
+          "_postman_previewlanguage": "json",
+          "header": [],
+          "body": ""
+        },
+        {
+          "name": "404",
+          "originalRequest": {
+            "method": "GET",
+            "description": "Get detailed vendor risk profile\n\nResponses:\n- 200: Vendor details retrieved successfully.\n- 401: Response\n- 404: Response\n- 500: Response",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/vendors/:vendorId?includeAssessmentHistory={{includeAssessmentHistory}}&includeComplianceEvidence={{includeComplianceEvidence}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "vendors",
+                ":vendorId"
+              ],
+              "query": [
+                {
+                  "key": "includeAssessmentHistory",
+                  "value": "{{includeAssessmentHistory}}",
+                  "disabled": true,
+                  "description": "Include historical assessment records."
+                },
+                {
+                  "key": "includeComplianceEvidence",
+                  "value": "{{includeComplianceEvidence}}",
+                  "disabled": true,
+                  "description": "Include links to compliance documents (SOC2, ISO certs)."
+                }
+              ],
+              "variable": [
+                {
+                  "key": "vendorId",
+                  "value": "{{vendorId}}",
+                  "description": "Unique identifier of the vendor."
+                }
+              ]
+            }
+          },
+          "status": "404",
+          "code": 404,
+          "_postman_previewlanguage": "json",
+          "header": [],
+          "body": ""
+        },
+        {
+          "name": "500",
+          "originalRequest": {
+            "method": "GET",
+            "description": "Get detailed vendor risk profile\n\nResponses:\n- 200: Vendor details retrieved successfully.\n- 401: Response\n- 404: Response\n- 500: Response",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/vendors/:vendorId?includeAssessmentHistory={{includeAssessmentHistory}}&includeComplianceEvidence={{includeComplianceEvidence}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "vendors",
+                ":vendorId"
+              ],
+              "query": [
+                {
+                  "key": "includeAssessmentHistory",
+                  "value": "{{includeAssessmentHistory}}",
+                  "disabled": true,
+                  "description": "Include historical assessment records."
+                },
+                {
+                  "key": "includeComplianceEvidence",
+                  "value": "{{includeComplianceEvidence}}",
+                  "disabled": true,
+                  "description": "Include links to compliance documents (SOC2, ISO certs)."
+                }
+              ],
+              "variable": [
+                {
+                  "key": "vendorId",
+                  "value": "{{vendorId}}",
+                  "description": "Unique identifier of the vendor."
+                }
+              ]
+            }
+          },
+          "status": "500",
+          "code": 500,
+          "_postman_previewlanguage": "json",
+          "header": [],
+          "body": ""
+        }
+      ]
+    },
+    {
+      "name": "Trigger a new vendor risk assessment",
+      "request": {
+        "method": "POST",
+        "description": "Trigger a new vendor risk assessment\n\nResponses:\n- 202: Assessment initiated and running.\n- 400: Response\n- 401: Response\n- 404: Vendor not found.\n- 409: Assessment already in progress for this vendor.\n- 500: Response",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/assessments",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "assessments"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"vendorId\": \"123e4567-e89b-12d3-a456-426614174000\",\n  \"assessmentType\": \"QUARTERLY\",\n  \"includeQuestionnaire\": true,\n  \"questionnaireTemplate\": \"SOC2_STANDARD\",\n  \"requestedBy\": \"security-team@forgesphere.example.com\",\n  \"priority\": \"NORMAL\",\n  \"notifyOnCompletion\": true,\n  \"notifyChannels\": [\n    \"SLACK\",\n    \"EMAIL\"\n  ]\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "response": [
+        {
+          "name": "202 Assessment initiated and running.",
+          "originalRequest": {
+            "method": "POST",
+            "description": "Trigger a new vendor risk assessment\n\nResponses:\n- 202: Assessment initiated and running.\n- 400: Response\n- 401: Response\n- 404: Vendor not found.\n- 409: Assessment already in progress for this vendor.\n- 500: Response",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/assessments",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "assessments"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"vendorId\": \"123e4567-e89b-12d3-a456-426614174000\",\n  \"assessmentType\": \"QUARTERLY\",\n  \"includeQuestionnaire\": true,\n  \"questionnaireTemplate\": \"SOC2_STANDARD\",\n  \"requestedBy\": \"security-team@forgesphere.example.com\",\n  \"priority\": \"NORMAL\",\n  \"notifyOnCompletion\": true,\n  \"notifyChannels\": [\n    \"SLACK\",\n    \"EMAIL\"\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "status": "Assessment initiated and running.",
+          "code": 202,
+          "_postman_previewlanguage": "json",
+          "header": [],
+          "body": ""
+        },
+        {
+          "name": "400",
+          "originalRequest": {
+            "method": "POST",
+            "description": "Trigger a new vendor risk assessment\n\nResponses:\n- 202: Assessment initiated and running.\n- 400: Response\n- 401: Response\n- 404: Vendor not found.\n- 409: Assessment already in progress for this vendor.\n- 500: Response",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/assessments",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "assessments"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"vendorId\": \"123e4567-e89b-12d3-a456-426614174000\",\n  \"assessmentType\": \"QUARTERLY\",\n  \"includeQuestionnaire\": true,\n  \"questionnaireTemplate\": \"SOC2_STANDARD\",\n  \"requestedBy\": \"security-team@forgesphere.example.com\",\n  \"priority\": \"NORMAL\",\n  \"notifyOnCompletion\": true,\n  \"notifyChannels\": [\n    \"SLACK\",\n    \"EMAIL\"\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "status": "400",
+          "code": 400,
+          "_postman_previewlanguage": "json",
+          "header": [],
+          "body": ""
+        },
+        {
+          "name": "401",
+          "originalRequest": {
+            "method": "POST",
+            "description": "Trigger a new vendor risk assessment\n\nResponses:\n- 202: Assessment initiated and running.\n- 400: Response\n- 401: Response\n- 404: Vendor not found.\n- 409: Assessment already in progress for this vendor.\n- 500: Response",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/assessments",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "assessments"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"vendorId\": \"123e4567-e89b-12d3-a456-426614174000\",\n  \"assessmentType\": \"QUARTERLY\",\n  \"includeQuestionnaire\": true,\n  \"questionnaireTemplate\": \"SOC2_STANDARD\",\n  \"requestedBy\": \"security-team@forgesphere.example.com\",\n  \"priority\": \"NORMAL\",\n  \"notifyOnCompletion\": true,\n  \"notifyChannels\": [\n    \"SLACK\",\n    \"EMAIL\"\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "status": "401",
+          "code": 401,
+          "_postman_previewlanguage": "json",
+          "header": [],
+          "body": ""
+        },
+        {
+          "name": "404 Vendor not found.",
+          "originalRequest": {
+            "method": "POST",
+            "description": "Trigger a new vendor risk assessment\n\nResponses:\n- 202: Assessment initiated and running.\n- 400: Response\n- 401: Response\n- 404: Vendor not found.\n- 409: Assessment already in progress for this vendor.\n- 500: Response",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/assessments",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "assessments"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"vendorId\": \"123e4567-e89b-12d3-a456-426614174000\",\n  \"assessmentType\": \"QUARTERLY\",\n  \"includeQuestionnaire\": true,\n  \"questionnaireTemplate\": \"SOC2_STANDARD\",\n  \"requestedBy\": \"security-team@forgesphere.example.com\",\n  \"priority\": \"NORMAL\",\n  \"notifyOnCompletion\": true,\n  \"notifyChannels\": [\n    \"SLACK\",\n    \"EMAIL\"\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "status": "Vendor not found.",
+          "code": 404,
+          "_postman_previewlanguage": "json",
+          "header": [],
+          "body": ""
+        },
+        {
+          "name": "409 Assessment already in progress for this vendor.",
+          "originalRequest": {
+            "method": "POST",
+            "description": "Trigger a new vendor risk assessment\n\nResponses:\n- 202: Assessment initiated and running.\n- 400: Response\n- 401: Response\n- 404: Vendor not found.\n- 409: Assessment already in progress for this vendor.\n- 500: Response",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/assessments",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "assessments"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"vendorId\": \"123e4567-e89b-12d3-a456-426614174000\",\n  \"assessmentType\": \"QUARTERLY\",\n  \"includeQuestionnaire\": true,\n  \"questionnaireTemplate\": \"SOC2_STANDARD\",\n  \"requestedBy\": \"security-team@forgesphere.example.com\",\n  \"priority\": \"NORMAL\",\n  \"notifyOnCompletion\": true,\n  \"notifyChannels\": [\n    \"SLACK\",\n    \"EMAIL\"\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "status": "Assessment already in progress for this vendor.",
+          "code": 409,
+          "_postman_previewlanguage": "json",
+          "header": [],
+          "body": ""
+        },
+        {
+          "name": "500",
+          "originalRequest": {
+            "method": "POST",
+            "description": "Trigger a new vendor risk assessment\n\nResponses:\n- 202: Assessment initiated and running.\n- 400: Response\n- 401: Response\n- 404: Vendor not found.\n- 409: Assessment already in progress for this vendor.\n- 500: Response",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/assessments",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "assessments"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"vendorId\": \"123e4567-e89b-12d3-a456-426614174000\",\n  \"assessmentType\": \"QUARTERLY\",\n  \"includeQuestionnaire\": true,\n  \"questionnaireTemplate\": \"SOC2_STANDARD\",\n  \"requestedBy\": \"security-team@forgesphere.example.com\",\n  \"priority\": \"NORMAL\",\n  \"notifyOnCompletion\": true,\n  \"notifyChannels\": [\n    \"SLACK\",\n    \"EMAIL\"\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "status": "500",
+          "code": 500,
+          "_postman_previewlanguage": "json",
+          "header": [],
+          "body": ""
+        }
+      ]
+    },
+    {
+      "name": "Get the status and results of a vendor assessment",
+      "request": {
+        "method": "GET",
+        "description": "Get the status and results of a vendor assessment\n\nResponses:\n- 200: Assessment details retrieved successfully.\n- 401: Response\n- 404: Response\n- 500: Response",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/assessments/:assessmentId?includeFindings={{includeFindings}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "assessments",
+            ":assessmentId"
+          ],
+          "query": [
+            {
+              "key": "includeFindings",
+              "value": "{{includeFindings}}",
+              "disabled": true,
+              "description": "Include detailed findings from each check."
+            }
+          ],
+          "variable": [
+            {
+              "key": "assessmentId",
+              "value": "{{assessmentId}}",
+              "description": "Unique identifier of the assessment."
+            }
+          ]
+        }
+      },
+      "response": [
+        {
+          "name": "200 Assessment details retrieved successfully.",
+          "originalRequest": {
+            "method": "GET",
+            "description": "Get the status and results of a vendor assessment\n\nResponses:\n- 200: Assessment details retrieved successfully.\n- 401: Response\n- 404: Response\n- 500: Response",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/assessments/:assessmentId?includeFindings={{includeFindings}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "assessments",
+                ":assessmentId"
+              ],
+              "query": [
+                {
+                  "key": "includeFindings",
+                  "value": "{{includeFindings}}",
+                  "disabled": true,
+                  "description": "Include detailed findings from each check."
+                }
+              ],
+              "variable": [
+                {
+                  "key": "assessmentId",
+                  "value": "{{assessmentId}}",
+                  "description": "Unique identifier of the assessment."
+                }
+              ]
+            }
+          },
+          "status": "Assessment details retrieved successfully.",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [],
+          "body": ""
+        },
+        {
+          "name": "401",
+          "originalRequest": {
+            "method": "GET",
+            "description": "Get the status and results of a vendor assessment\n\nResponses:\n- 200: Assessment details retrieved successfully.\n- 401: Response\n- 404: Response\n- 500: Response",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/assessments/:assessmentId?includeFindings={{includeFindings}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "assessments",
+                ":assessmentId"
+              ],
+              "query": [
+                {
+                  "key": "includeFindings",
+                  "value": "{{includeFindings}}",
+                  "disabled": true,
+                  "description": "Include detailed findings from each check."
+                }
+              ],
+              "variable": [
+                {
+                  "key": "assessmentId",
+                  "value": "{{assessmentId}}",
+                  "description": "Unique identifier of the assessment."
+                }
+              ]
+            }
+          },
+          "status": "401",
+          "code": 401,
+          "_postman_previewlanguage": "json",
+          "header": [],
+          "body": ""
+        },
+        {
+          "name": "404",
+          "originalRequest": {
+            "method": "GET",
+            "description": "Get the status and results of a vendor assessment\n\nResponses:\n- 200: Assessment details retrieved successfully.\n- 401: Response\n- 404: Response\n- 500: Response",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/assessments/:assessmentId?includeFindings={{includeFindings}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "assessments",
+                ":assessmentId"
+              ],
+              "query": [
+                {
+                  "key": "includeFindings",
+                  "value": "{{includeFindings}}",
+                  "disabled": true,
+                  "description": "Include detailed findings from each check."
+                }
+              ],
+              "variable": [
+                {
+                  "key": "assessmentId",
+                  "value": "{{assessmentId}}",
+                  "description": "Unique identifier of the assessment."
+                }
+              ]
+            }
+          },
+          "status": "404",
+          "code": 404,
+          "_postman_previewlanguage": "json",
+          "header": [],
+          "body": ""
+        },
+        {
+          "name": "500",
+          "originalRequest": {
+            "method": "GET",
+            "description": "Get the status and results of a vendor assessment\n\nResponses:\n- 200: Assessment details retrieved successfully.\n- 401: Response\n- 404: Response\n- 500: Response",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/assessments/:assessmentId?includeFindings={{includeFindings}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "assessments",
+                ":assessmentId"
+              ],
+              "query": [
+                {
+                  "key": "includeFindings",
+                  "value": "{{includeFindings}}",
+                  "disabled": true,
+                  "description": "Include detailed findings from each check."
+                }
+              ],
+              "variable": [
+                {
+                  "key": "assessmentId",
+                  "value": "{{assessmentId}}",
+                  "description": "Unique identifier of the assessment."
+                }
+              ]
+            }
+          },
+          "status": "500",
+          "code": 500,
+          "_postman_previewlanguage": "json",
+          "header": [],
+          "body": ""
+        }
+      ]
+    }
+  ]
+}
