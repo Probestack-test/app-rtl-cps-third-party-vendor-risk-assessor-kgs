@@ -1,0 +1,102 @@
+_format_version: "3.0"
+_transform: true
+
+########################################################
+# SERVICES
+########################################################
+
+services:
+  - name: third-party-vendor-risk-assessor
+    host: third-party-vendor-risk-assessor
+    port: 443
+    protocol: https
+    path: /api
+    retries: 5
+    connect_timeout: 60000
+    write_timeout: 60000
+    read_timeout: 60000
+    routes:
+      - name: third-party-vendor-risk-assessor-get-api-v1-payments-vendors
+        protocols:
+          - https
+          - http
+        methods:
+          - GET
+        hosts:
+          - api.example.com
+        paths:
+          - /api/v1/payments/vendors
+        strip_path: true
+        preserve_host: false
+        https_redirect_status_code: 426
+      - name: third-party-vendor-risk-assessor-post-api-v1-payments-vendors
+        protocols:
+          - https
+          - http
+        methods:
+          - POST
+        hosts:
+          - api.example.com
+        paths:
+          - /api/v1/payments/vendors
+        strip_path: true
+        preserve_host: false
+        https_redirect_status_code: 426
+      - name: third-party-vendor-risk-assessor-get-api-v1-payments-vendors-vendorid
+        protocols:
+          - https
+          - http
+        methods:
+          - GET
+        hosts:
+          - api.example.com
+        paths:
+          - /api/v1/payments/vendors/{vendorId}
+        strip_path: true
+        preserve_host: false
+        https_redirect_status_code: 426
+      - name: third-party-vendor-risk-assessor-post-api-v1-payments-assessments
+        protocols:
+          - https
+          - http
+        methods:
+          - POST
+        hosts:
+          - api.example.com
+        paths:
+          - /api/v1/payments/assessments
+        strip_path: true
+        preserve_host: false
+        https_redirect_status_code: 426
+      - name: third-party-vendor-risk-assessor-get-api-v1-payments-assessments-assessmentid
+        protocols:
+          - https
+          - http
+        methods:
+          - GET
+        hosts:
+          - api.example.com
+        paths:
+          - /api/v1/payments/assessments/{assessmentId}
+        strip_path: true
+        preserve_host: false
+        https_redirect_status_code: 426
+
+########################################################
+# PLUGINS
+########################################################
+
+plugins:
+  []
+
+########################################################
+# UPSTREAMS + TARGETS
+########################################################
+
+upstreams:
+  - name: third-party-vendor-risk-assessor
+    algorithm: round-robin
+    slots: 10000
+    targets:
+      - target: api.example.com:443
+        weight: 100
