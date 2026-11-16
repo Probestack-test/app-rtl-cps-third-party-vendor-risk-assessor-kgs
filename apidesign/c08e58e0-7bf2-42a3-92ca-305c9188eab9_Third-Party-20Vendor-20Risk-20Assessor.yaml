@@ -1,0 +1,1060 @@
+openapi: 3.0.3
+info:
+  title: Third-Party Vendor Risk Assessor
+  version: 1.0.0
+  description: |
+    Continuous security, privacy, and compliance risk assessment for 
+    third-party vendors. Tracks every SaaS tool, cloud provider, and 
+    integration partner in your supply chain. Automatically monitors 
+    security posture via public sources (SOC2 reports, breach databases, 
+    security ratings), flags compliance gaps, and enforces data processing 
+    agreement (DPA) renewals. Prevents the classic "we forgot that vendor 
+    had access to customer data" incident.
+  contact:
+    name: ForgeSphere Third-Party Risk
+    email: vendor-risk@forgesphere.example.com
+  termsOfService: "https://forgesphere.example.com/terms"
+
+servers:
+  - url: https://vendor-risk.forgesphere.lightning.com/v1
+    description: Production Server
+  - url: http://localhost:8152/v1
+    description: Local Development Server
+
+security:
+  - bearerAuth: []
+
+tags:
+  - name: Vendors
+    description: Register and manage third-party vendor profiles.
+  - name: Assessments
+    description: Track vendor risk assessments and compliance evidence.
+
+paths:
+  # ==================== 1 & 2. VENDORS (POST + GET) ====================
+  /vendors:
+    post:
+      tags: [Vendors]
+      summary: Register a new third-party vendor
+      description: |
+        Adds a new vendor to the third-party risk register. Captures the 
+        vendor's category, data access scope, criticality tier, and compliance 
+        requirements. Once registered, the vendor is automatically monitored 
+        for security incidents, compliance changes, and DPA expiry.
+      operationId: registerVendor
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterVendorRequest'
+            example:
+              vendorName: "Snowflake Inc."
+              website: "https://www.snowflake.com"
+              category: "DATA_WAREHOUSE"
+              criticalityTier: "TIER_1"
+              dataAccessScope:
+                dataTypes: ["CUSTOMER_PII", "FINANCIAL", "BEHAVIORAL"]
+                accessLevel: "READ_WRITE"
+                dataVolumePerMonthGb: 850
+              integrations:
+                - serviceName: "analytics-platform"
+                  protocol: "OAuth2"
+                  deployedIn: ["PRODUCTION"]
+              complianceRequirements:
+                - "SOC2_TYPE_II"
+                - "ISO_27001"
+                - "GDPR_DPA"
+              contractOwner: "procurement-team@forgesphere.example.com"
+              technicalOwner: "data-platform@forgesphere.example.com"
+              dpa:
+                signed: true
+                signedAt: "2025-06-15T00:00:00Z"
+                expiresAt: "2026-12-31T23:59:59Z"
+              annualContractValueUSD: 240000.00
+      responses:
+        '201':
+          description: Vendor registered and monitoring initiated.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Vendor'
+          headers:
+            Location:
+              description: "URL to the registered vendor."
+              schema:
+                type: string
+                format: uri
+              example: "/v1/vendors/123e4567-e89b-12d3-a456-426614174000"
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '409':
+          description: Vendor with this domain already exists.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+    get:
+      tags: [Vendors]
+      summary: List and search registered vendors
+      description: |
+        Returns a filterable list of all third-party vendors with their 
+        current risk scores, compliance status, and criticality tier. Used 
+        by security teams for quarterly reviews, procurement for renewals, 
+        and auditors for supply-chain evidence.
+      operationId: listVendors
+      parameters:
+        - name: category
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [CLOUD_INFRASTRUCTURE, DATA_WAREHOUSE, ANALYTICS, CRM, COMMUNICATION, DEVELOPMENT, SECURITY, PAYMENT, MARKETING, SUPPORT, AI_ML]
+          description: "Filter by vendor category."
+          example: "DATA_WAREHOUSE"
+        - name: criticalityTier
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [TIER_0, TIER_1, TIER_2, TIER_3]
+          description: "Filter by criticality tier."
+          example: "TIER_1"
+        - name: riskLevel
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [MINIMAL, LOW, MEDIUM, HIGH, CRITICAL]
+          description: "Filter by current risk level."
+          example: "MEDIUM"
+        - name: complianceStatus
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [COMPLIANT, ATTENTION_NEEDED, NON_COMPLIANT, PENDING_VERIFICATION]
+          description: "Filter by compliance status."
+          example: "COMPLIANT"
+        - name: dpaExpiringWithinDays
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 365
+          description: "Only vendors whose DPA expires within N days."
+          example: 60
+        - name: q
+          in: query
+          required: false
+          schema:
+            type: string
+            maxLength: 100
+          description: "Full-text search on vendor name."
+          example: "snowflake"
+        - name: sortBy
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [VENDOR_NAME, RISK_SCORE, CRITICALITY, DPA_EXPIRY, LAST_ASSESSED]
+            default: RISK_SCORE
+          description: "Sort order."
+          example: "RISK_SCORE"
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+          description: "Page number (zero-based)."
+          example: 0
+        - name: size
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+          description: "Number of items per page."
+          example: 20
+      responses:
+        '200':
+          description: Paginated list of vendors.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VendorList'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  # ==================== 3. GET VENDOR BY ID ====================
+  /vendors/{vendorId}:
+    get:
+      tags: [Vendors]
+      summary: Get detailed vendor risk profile
+      description: |
+        Returns the complete risk profile for a vendor — current risk score 
+        with breakdown, compliance evidence, data access scope, integration 
+        details, recent assessments, and any outstanding issues. Includes 
+        the full assessment history for audit purposes.
+      operationId: getVendor
+      parameters:
+        - name: vendorId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: "Unique identifier of the vendor."
+          example: "123e4567-e89b-12d3-a456-426614174000"
+        - name: includeAssessmentHistory
+          in: query
+          required: false
+          schema:
+            type: boolean
+            default: true
+          description: "Include historical assessment records."
+          example: true
+        - name: includeComplianceEvidence
+          in: query
+          required: false
+          schema:
+            type: boolean
+            default: true
+          description: "Include links to compliance documents (SOC2, ISO certs)."
+          example: true
+      responses:
+        '200':
+          description: Vendor details retrieved successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Vendor'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  # ==================== 4. TRIGGER NEW ASSESSMENT ====================
+  /assessments:
+    post:
+      tags: [Assessments]
+      summary: Trigger a new vendor risk assessment
+      description: |
+        Initiates a fresh risk assessment for a vendor. Runs automated 
+        checks against security rating providers, CVE databases, breach 
+        feeds, and compliance repositories. Optionally sends a security 
+        questionnaire to the vendor contact for the subjective portion. 
+        Returns immediately with an assessment ID; results arrive via 
+        webhook or polling.
+      operationId: createAssessment
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateAssessmentRequest'
+            example:
+              vendorId: "123e4567-e89b-12d3-a456-426614174000"
+              assessmentType: "QUARTERLY"
+              includeQuestionnaire: true
+              questionnaireTemplate: "SOC2_STANDARD"
+              requestedBy: "security-team@forgesphere.example.com"
+              priority: "NORMAL"
+              notifyOnCompletion: true
+              notifyChannels: ["SLACK", "EMAIL"]
+      responses:
+        '202':
+          description: Assessment initiated and running.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Assessment'
+          headers:
+            Location:
+              description: "URL to poll for assessment status."
+              schema:
+                type: string
+                format: uri
+              example: "/v1/assessments/456e7890-e89b-12d3-a456-426614174001"
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          description: Vendor not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Assessment already in progress for this vendor.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  # ==================== 5. GET ASSESSMENT DETAILS ====================
+  /assessments/{assessmentId}:
+    get:
+      tags: [Assessments]
+      summary: Get the status and results of a vendor assessment
+      description: |
+        Returns the current state of an assessment — completed checks, 
+        outstanding questionnaire responses, computed risk score, and 
+        recommended actions. Poll this endpoint until status = COMPLETED.
+      operationId: getAssessment
+      parameters:
+        - name: assessmentId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: "Unique identifier of the assessment."
+          example: "456e7890-e89b-12d3-a456-426614174001"
+        - name: includeFindings
+          in: query
+          required: false
+          schema:
+            type: boolean
+            default: true
+          description: "Include detailed findings from each check."
+          example: true
+      responses:
+        '200':
+          description: Assessment details retrieved successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Assessment'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: "JWT token for security teams, procurement, and compliance officers."
+
+  schemas:
+    Vendor:
+      type: object
+      required: [vendorId, vendorName, website, category, criticalityTier, status, riskScore, riskLevel, complianceStatus, registeredAt]
+      properties:
+        vendorId:
+          type: string
+          format: uuid
+          description: "Unique identifier of the vendor."
+          example: "123e4567-e89b-12d3-a456-426614174000"
+        vendorName:
+          type: string
+          description: "Legal name of the vendor."
+          example: "Snowflake Inc."
+        website:
+          type: string
+          format: uri
+          description: "Vendor's primary website."
+          example: "https://www.snowflake.com"
+        category:
+          type: string
+          enum: [CLOUD_INFRASTRUCTURE, DATA_WAREHOUSE, ANALYTICS, CRM, COMMUNICATION, DEVELOPMENT, SECURITY, PAYMENT, MARKETING, SUPPORT, AI_ML]
+          description: "Vendor category for grouping and policy enforcement."
+          example: "DATA_WAREHOUSE"
+        criticalityTier:
+          type: string
+          enum: [TIER_0, TIER_1, TIER_2, TIER_3]
+          description: "Business criticality tier — drives assessment frequency."
+          example: "TIER_1"
+        status:
+          type: string
+          enum: [ACTIVE, UNDER_REVIEW, SUSPENDED, DEPRECATED, OFFBOARDING]
+          description: "Current lifecycle status."
+          example: "ACTIVE"
+        riskScore:
+          type: number
+          format: double
+          minimum: 0
+          maximum: 100
+          description: "Composite risk score (0=safe, 100=critical)."
+          example: 32.5
+        riskLevel:
+          type: string
+          enum: [MINIMAL, LOW, MEDIUM, HIGH, CRITICAL]
+          description: "Risk level derived from score."
+          example: "MEDIUM"
+        riskBreakdown:
+          type: object
+          description: "Sub-scores that make up the total risk score."
+          properties:
+            securityScore:
+              type: number
+              format: double
+              description: "Security posture (SOC2, ISO, pentest, etc)."
+              example: 28.0
+            privacyScore:
+              type: number
+              format: double
+              description: "Privacy/GDPR compliance."
+              example: 35.0
+            operationalScore:
+              type: number
+              format: double
+              description: "Uptime SLAs, incidents."
+              example: 30.0
+            financialScore:
+              type: number
+              format: double
+              description: "Financial stability, funding, etc."
+              example: 40.0
+            reputationalScore:
+              type: number
+              format: double
+              description: "Breaches, lawsuits, PR incidents."
+              example: 30.0
+        complianceStatus:
+          type: string
+          enum: [COMPLIANT, ATTENTION_NEEDED, NON_COMPLIANT, PENDING_VERIFICATION]
+          description: "Overall compliance status."
+          example: "COMPLIANT"
+        dataAccessScope:
+          type: object
+          description: "What data the vendor can access."
+          properties:
+            dataTypes:
+              type: array
+              items:
+                type: string
+                enum: [CUSTOMER_PII, FINANCIAL, BEHAVIORAL, HEALTH, CREDENTIALS, AUTHENTICATION, PUBLIC, INTERNAL, CONFIDENTIAL]
+              example: ["CUSTOMER_PII", "FINANCIAL"]
+            accessLevel:
+              type: string
+              enum: [READ_ONLY, WRITE, READ_WRITE, ADMIN]
+              example: "READ_WRITE"
+            dataVolumePerMonthGb:
+              type: integer
+              description: "Approximate data volume shared monthly (GB)."
+              example: 850
+        integrations:
+          type: array
+          description: "Systems this vendor integrates with."
+          items:
+            type: object
+            properties:
+              serviceName:
+                type: string
+                example: "analytics-platform"
+              protocol:
+                type: string
+                enum: [OAUTH2, API_KEY, SAML, MTLS, BASIC_AUTH, NONE]
+                example: "OAUTH2"
+              deployedIn:
+                type: array
+                items:
+                  type: string
+                  enum: [DEV, STAGING, PRODUCTION]
+                example: ["PRODUCTION"]
+        complianceRequirements:
+          type: array
+          description: "Compliance certifications required by policy."
+          items:
+            type: string
+            enum: [SOC2_TYPE_I, SOC2_TYPE_II, ISO_27001, HIPAA, PCI_DSS, GDPR_DPA, FEDRAMP, CSA_STAR]
+          example: ["SOC2_TYPE_II", "ISO_27001", "GDPR_DPA"]
+        complianceEvidence:
+          type: array
+          description: "Links to actual compliance documents."
+          items:
+            type: object
+            properties:
+              type:
+                type: string
+                example: "SOC2_TYPE_II"
+              reportUrl:
+                type: string
+                format: uri
+                description: "Vendor's compliance portal URL or document storage."
+                example: "https://trust.snowflake.com/soc2"
+              validUntil:
+                type: string
+                format: date
+                example: "2027-03-31"
+              status:
+                type: string
+                enum: [VERIFIED, PENDING_VERIFICATION, EXPIRED, MISSING]
+                example: "VERIFIED"
+        dpa:
+          type: object
+          description: "Data Processing Agreement status."
+          properties:
+            signed:
+              type: boolean
+              example: true
+            signedAt:
+              type: string
+              format: date-time
+              example: "2025-06-15T00:00:00Z"
+            expiresAt:
+              type: string
+              format: date-time
+              example: "2026-12-31T23:59:59Z"
+            daysUntilExpiry:
+              type: integer
+              example: 45
+            documentUrl:
+              type: string
+              format: uri
+              example: "https://legal.forgesphere.example.com/dpas/snowflake-dpa-2025.pdf"
+        annualContractValueUSD:
+          type: number
+          format: double
+          description: "Annual spend on this vendor (for prioritization)."
+          example: 240000.00
+        contractOwner:
+          type: string
+          description: "Team owning the contract and relationship."
+          example: "procurement-team@forgesphere.example.com"
+        technicalOwner:
+          type: string
+          description: "Team owning the technical integration."
+          example: "data-platform@forgesphere.example.com"
+        recentIncidents:
+          type: array
+          description: "Publicly reported incidents in last 24 months."
+          items:
+            type: object
+            properties:
+              incidentType:
+                type: string
+                enum: [DATA_BREACH, SERVICE_OUTAGE, REGULATORY_FINE, LAWSUIT, SECURITY_RESEARCH_FINDING]
+                example: "SERVICE_OUTAGE"
+              occurredAt:
+                type: string
+                format: date-time
+                example: "2026-02-15T00:00:00Z"
+              severity:
+                type: string
+                enum: [LOW, MEDIUM, HIGH, CRITICAL]
+                example: "MEDIUM"
+              summary:
+                type: string
+                example: "6-hour regional outage in us-east-1 affecting analytics workloads."
+              sourceUrl:
+                type: string
+                format: uri
+                example: "https://status.snowflake.com/incidents/abc123"
+        lastAssessedAt:
+          type: string
+          format: date-time
+          description: "When the last full assessment completed."
+          example: "2026-11-01T10:00:00Z"
+        nextAssessmentDueAt:
+          type: string
+          format: date-time
+          description: "When the next assessment is scheduled."
+          example: "2026-12-01T00:00:00Z"
+        assessmentHistory:
+          type: array
+          description: "Historical assessments (if includeAssessmentHistory=true)."
+          items:
+            type: object
+            properties:
+              assessmentId:
+                type: string
+                format: uuid
+                example: "456e7890-e89b-12d3-a456-426614174001"
+              assessedAt:
+                type: string
+                format: date-time
+              riskScore:
+                type: number
+                format: double
+                example: 32.5
+              riskLevel:
+                type: string
+                enum: [MINIMAL, LOW, MEDIUM, HIGH, CRITICAL]
+                example: "MEDIUM"
+              complianceStatus:
+                type: string
+                enum: [COMPLIANT, ATTENTION_NEEDED, NON_COMPLIANT, PENDING_VERIFICATION]
+                example: "COMPLIANT"
+              findingsCount:
+                type: integer
+                example: 3
+        registeredAt:
+          type: string
+          format: date-time
+        registeredBy:
+          type: string
+          example: "procurement-team@forgesphere.example.com"
+        auditReference:
+          type: string
+          example: "audit://vendor-risk/vendor-123e4567"
+
+    RegisterVendorRequest:
+      type: object
+      required: [vendorName, website, category, criticalityTier, dataAccessScope, complianceRequirements, contractOwner, technicalOwner, dpa]
+      properties:
+        vendorName:
+          type: string
+          minLength: 1
+          maxLength: 200
+          description: "Vendor's legal name."
+          example: "Snowflake Inc."
+        website:
+          type: string
+          format: uri
+          description: "Vendor's primary website."
+          example: "https://www.snowflake.com"
+        category:
+          type: string
+          enum: [CLOUD_INFRASTRUCTURE, DATA_WAREHOUSE, ANALYTICS, CRM, COMMUNICATION, DEVELOPMENT, SECURITY, PAYMENT, MARKETING, SUPPORT, AI_ML]
+          description: "Vendor category."
+          example: "DATA_WAREHOUSE"
+        criticalityTier:
+          type: string
+          enum: [TIER_0, TIER_1, TIER_2, TIER_3]
+          description: "Business criticality."
+          example: "TIER_1"
+        dataAccessScope:
+          type: object
+          required: [dataTypes, accessLevel]
+          properties:
+            dataTypes:
+              type: array
+              minItems: 1
+              items:
+                type: string
+                enum: [CUSTOMER_PII, FINANCIAL, BEHAVIORAL, HEALTH, CREDENTIALS, AUTHENTICATION, PUBLIC, INTERNAL, CONFIDENTIAL]
+              example: ["CUSTOMER_PII", "FINANCIAL"]
+            accessLevel:
+              type: string
+              enum: [READ_ONLY, WRITE, READ_WRITE, ADMIN]
+              example: "READ_WRITE"
+            dataVolumePerMonthGb:
+              type: integer
+              minimum: 0
+              description: "Approximate monthly data volume (GB)."
+              example: 850
+        integrations:
+          type: array
+          items:
+            type: object
+            required: [serviceName, protocol]
+            properties:
+              serviceName:
+                type: string
+                example: "analytics-platform"
+              protocol:
+                type: string
+                enum: [OAUTH2, API_KEY, SAML, MTLS, BASIC_AUTH, NONE]
+                example: "OAUTH2"
+              deployedIn:
+                type: array
+                items:
+                  type: string
+                  enum: [DEV, STAGING, PRODUCTION]
+                example: ["PRODUCTION"]
+        complianceRequirements:
+          type: array
+          minItems: 1
+          items:
+            type: string
+            enum: [SOC2_TYPE_I, SOC2_TYPE_II, ISO_27001, HIPAA, PCI_DSS, GDPR_DPA, FEDRAMP, CSA_STAR]
+          example: ["SOC2_TYPE_II", "ISO_27001", "GDPR_DPA"]
+        contractOwner:
+          type: string
+          format: email
+          description: "Team owning the contract."
+          example: "procurement-team@forgesphere.example.com"
+        technicalOwner:
+          type: string
+          format: email
+          description: "Team owning the integration."
+          example: "data-platform@forgesphere.example.com"
+        dpa:
+          type: object
+          required: [signed]
+          properties:
+            signed:
+              type: boolean
+              example: true
+            signedAt:
+              type: string
+              format: date-time
+              example: "2025-06-15T00:00:00Z"
+            expiresAt:
+              type: string
+              format: date-time
+              example: "2026-12-31T23:59:59Z"
+            documentUrl:
+              type: string
+              format: uri
+              example: "https://legal.forgesphere.example.com/dpas/snowflake-dpa-2025.pdf"
+        annualContractValueUSD:
+          type: number
+          format: double
+          minimum: 0
+          description: "Annual contract value in USD."
+          example: 240000.00
+
+    Assessment:
+      type: object
+      required: [assessmentId, vendorId, vendorName, assessmentType, status, startedAt, checks]
+      properties:
+        assessmentId:
+          type: string
+          format: uuid
+          description: "Unique identifier of the assessment."
+          example: "456e7890-e89b-12d3-a456-426614174001"
+        vendorId:
+          type: string
+          format: uuid
+          example: "123e4567-e89b-12d3-a456-426614174000"
+        vendorName:
+          type: string
+          example: "Snowflake Inc."
+        assessmentType:
+          type: string
+          enum: [ONBOARDING, QUARTERLY, ANNUAL, AD_HOC, INCIDENT_TRIGGERED, RENEWAL]
+          description: "Why this assessment was triggered."
+          example: "QUARTERLY"
+        status:
+          type: string
+          enum: [QUEUED, RUNNING_CHECKS, AWAITING_VENDOR_QUESTIONNAIRE, ANALYZING, COMPLETED, FAILED]
+          description: "Current assessment state."
+          example: "RUNNING_CHECKS"
+        startedAt:
+          type: string
+          format: date-time
+        completedAt:
+          type: string
+          format: date-time
+        progressPercent:
+          type: integer
+          minimum: 0
+          maximum: 100
+          example: 65
+        requestedBy:
+          type: string
+          example: "security-team@forgesphere.example.com"
+        priority:
+          type: string
+          enum: [LOW, NORMAL, HIGH, URGENT]
+          example: "NORMAL"
+        checks:
+          type: array
+          description: "Individual checks performed during the assessment."
+          items:
+            type: object
+            required: [checkName, checkType, status, result]
+            properties:
+              checkName:
+                type: string
+                example: "SOC2 Report Validity"
+              checkType:
+                type: string
+                enum: [SECURITY_RATING, CVE_SCAN, BREACH_DATABASE_LOOKUP, COMPLIANCE_VERIFICATION, QUESTIONNAIRE, SANCTION_LIST_CHECK, FINANCIAL_HEALTH]
+                example: "COMPLIANCE_VERIFICATION"
+              status:
+                type: string
+                enum: [PENDING, RUNNING, PASSED, FAILED, WARNING, SKIPPED]
+                example: "PASSED"
+              result:
+                type: string
+                example: "Valid SOC2 Type II report valid through 2027-03-31."
+              scoreContribution:
+                type: number
+                format: double
+                description: "How much this check contributes to overall risk (0-100)."
+                example: 5.0
+              evidenceUrl:
+                type: string
+                format: uri
+                example: "https://trust.snowflake.com/soc2"
+              performedAt:
+                type: string
+                format: date-time
+        findings:
+          type: array
+          description: "Detailed findings requiring action (if includeFindings=true)."
+          items:
+            type: object
+            required: [findingId, severity, category, description]
+            properties:
+              findingId:
+                type: string
+                format: uuid
+                example: "789e0123-e89b-12d3-a456-426614174002"
+              severity:
+                type: string
+                enum: [LOW, MEDIUM, HIGH, CRITICAL]
+                example: "MEDIUM"
+              category:
+                type: string
+                enum: [MISSING_CERTIFICATION, EXPIRED_DOCUMENT, SECURITY_INCIDENT, UNPATCHED_CVE, DPA_ISSUE, QUESTIONNAIRE_GAP, CONTRACT_ISSUE]
+                example: "MISSING_CERTIFICATION"
+              description:
+                type: string
+                example: "Vendor's ISO 27001 certificate expired on 2026-09-30; renewal not yet provided."
+              recommendedAction:
+                type: string
+                example: "Request updated ISO 27001 certificate from vendor; escalate if not provided within 30 days."
+              assignedTo:
+                type: string
+                example: "vendor-mgmt@forgesphere.example.com"
+              dueDate:
+                type: string
+                format: date
+                example: "2026-12-15"
+              status:
+                type: string
+                enum: [OPEN, ACKNOWLEDGED, IN_PROGRESS, RESOLVED, ACCEPTED_RISK]
+                example: "OPEN"
+        questionnaire:
+          type: object
+          description: "Vendor questionnaire status (if requested)."
+          properties:
+            template:
+              type: string
+              example: "SOC2_STANDARD"
+            sentAt:
+              type: string
+              format: date-time
+              example: "2026-11-16T10:00:00Z"
+            dueAt:
+              type: string
+              format: date-time
+              example: "2026-11-30T23:59:59Z"
+            receivedAt:
+              type: string
+              format: date-time
+            completionPercent:
+              type: integer
+              minimum: 0
+              maximum: 100
+              example: 0
+            responsesUrl:
+              type: string
+              format: uri
+        newRiskScore:
+          type: number
+          format: double
+          description: "Updated risk score after this assessment."
+          example: 34.2
+        newRiskLevel:
+          type: string
+          enum: [MINIMAL, LOW, MEDIUM, HIGH, CRITICAL]
+          example: "MEDIUM"
+        scoreDelta:
+          type: number
+          format: double
+          description: "Change from previous assessment."
+          example: 1.7
+        recommendedActions:
+          type: array
+          items:
+            type: string
+          example:
+            - "Follow up with vendor on expired ISO 27001 certificate."
+            - "Re-assess in 30 days instead of 90 due to open finding."
+        aiSummary:
+          type: string
+          description: "AI-generated plain-English summary of the assessment."
+          example: "Vendor remains MEDIUM risk. SOC2 and DPA are valid, but ISO 27001 expired 6 weeks ago. Risk increased slightly (+1.7). Recommend follow-up within 30 days."
+        errorMessage:
+          type: string
+          description: "Populated if status = FAILED."
+        auditReference:
+          type: string
+          example: "audit://vendor-risk/assessment-456e7890"
+
+    CreateAssessmentRequest:
+      type: object
+      required: [vendorId, assessmentType, requestedBy]
+      properties:
+        vendorId:
+          type: string
+          format: uuid
+          description: "Vendor to assess."
+          example: "123e4567-e89b-12d3-a456-426614174000"
+        assessmentType:
+          type: string
+          enum: [ONBOARDING, QUARTERLY, ANNUAL, AD_HOC, INCIDENT_TRIGGERED, RENEWAL]
+          description: "Reason for the assessment."
+          example: "QUARTERLY"
+        includeQuestionnaire:
+          type: boolean
+          default: false
+          description: "Whether to send a security questionnaire to the vendor."
+          example: true
+        questionnaireTemplate:
+          type: string
+          enum: [SOC2_STANDARD, HIPAA_EXTENDED, PCI_DSS_FULL, LIGHTWEIGHT, CUSTOM]
+          description: "Questionnaire template (required if includeQuestionnaire=true)."
+          example: "SOC2_STANDARD"
+        requestedBy:
+          type: string
+          format: email
+          description: "Who triggered the assessment."
+          example: "security-team@forgesphere.example.com"
+        priority:
+          type: string
+          enum: [LOW, NORMAL, HIGH, URGENT]
+          default: "NORMAL"
+          description: "Assessment priority."
+          example: "NORMAL"
+        notifyOnCompletion:
+          type: boolean
+          default: true
+          description: "Whether to notify on completion."
+          example: true
+        notifyChannels:
+          type: array
+          items:
+            type: string
+            enum: [EMAIL, SLACK, PAGERDUTY, WEBHOOK]
+          description: "Channels to notify on completion or failure."
+          example: ["SLACK", "EMAIL"]
+
+    VendorList:
+      type: object
+      required: [content, page, size, totalElements, totalPages]
+      properties:
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/Vendor'
+        page:
+          type: integer
+          minimum: 0
+          example: 0
+        size:
+          type: integer
+          minimum: 1
+          example: 20
+        totalElements:
+          type: integer
+          minimum: 0
+          example: 142
+        totalPages:
+          type: integer
+          minimum: 0
+          example: 8
+        summary:
+          type: object
+          description: "Aggregate metrics for the current filter."
+          properties:
+            totalVendors:
+              type: integer
+              example: 142
+            criticalRiskCount:
+              type: integer
+              example: 3
+            highRiskCount:
+              type: integer
+              example: 12
+            nonCompliantCount:
+              type: integer
+              example: 8
+            dpaExpiringWithin30d:
+              type: integer
+              example: 5
+            totalAnnualContractValueUSD:
+              type: number
+              format: double
+              example: 8450000.00
+
+    ErrorResponse:
+      type: object
+      required: [status, message, timestamp, path]
+      properties:
+        status:
+          type: integer
+          description: "HTTP status code."
+          example: 409
+        errorCode:
+          type: string
+          description: "Application-specific error code."
+          example: "ASSESSMENT_IN_PROGRESS"
+        message:
+          type: string
+          description: "Human-readable error message."
+          example: "An assessment is already running for this vendor (id: 456e7890)."
+        timestamp:
+          type: string
+          format: date-time
+          example: "2026-11-16T10:30:00Z"
+        path:
+          type: string
+          description: "API path where error occurred."
+          example: "/v1/assessments"
+        serviceTransactionId:
+          type: string
+          description: "Trace ID for debugging."
+          example: "523f52b2-64a5-465e-b245-3efbe78f70ae"
+
+  responses:
+    BadRequest:
+      description: Invalid request payload or parameters.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            status: 400
+            errorCode: "VALIDATION_ERROR"
+            message: "vendorName is required and cannot be empty."
+            timestamp: "2026-11-16T10:30:00Z"
+            path: "/v1/vendors"
+    Unauthorized:
+      description: Missing or invalid authentication token.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    NotFound:
+      description: Vendor or assessment not found.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            status: 404
+            errorCode: "VENDOR_NOT_FOUND"
+            message: "No vendor found with ID 123e4567-e89b-12d3-a456-426614174000."
+            timestamp: "2026-11-16T10:30:00Z"
+            path: "/v1/vendors/123e4567-e89b-12d3-a456-426614174000"
+    InternalError:
+      description: Unexpected server error.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            status: 500
+            errorCode: "EXTERNAL_PROVIDER_ERROR"
+            message: "Failed to fetch security rating from BitSight. Retrying."
+            timestamp: "2026-11-16T10:30:00Z"
+            path: "/v1/assessments"
